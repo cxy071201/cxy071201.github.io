@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>江苏省奶龙中学 · 学生社区</title>
+  <meta name="description" content="江苏省奶龙中学学生社区：分享校园趣事、记录校园图景、玩转奶龙吉祥物。学校为江苏省首批重点中学、国家级示范中学、江苏省四星高中，坐落于徐州市邳州市。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/community.css">
+</head>
+<body>
+
+  <site-header></site-header>
+
+  <!-- 主页横幅 -->
+  <section class="hero">
+    <div class="hero-bg" style="background-image:url('images/scene-aerial.svg');"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="hero-text">
+        <div class="tagline">JIANGSU NAILONG MIDDLE SCHOOL</div>
+        <h2>奶龙学生社区</h2>
+        <p>分享趣事 · 记录图景 · 玩转奶龙，这里是邳州学子的快乐老家</p>
+        <div class="hero-cta">
+          <a class="btn" href="stories.html">🎈 去趣事广场</a>
+          <a class="btn ghost" href="nailong.html">🐉 奶龙专区</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 社区统计 -->
+  <div class="stat-strip">
+    <div class="container">
+      <div><div class="count" id="bc-stories">0</div><div class="label">趣事帖</div></div>
+      <div><div class="count" id="bc-gallery">0</div><div class="label">校园图景</div></div>
+      <div><div class="count" id="bc-nailong">0</div><div class="label">奶龙作品</div></div>
+      <div><div class="count">100%</div><div class="label">青春活力</div></div>
+    </div>
+  </div>
+
+  <!-- 三大板块入口 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">COMMUNITY</span>
+        <h3>社区三大板块</h3>
+        <p>学生自运营 · 你的声音让校园更有温度</p>
+      </div>
+      <div class="community-entrance">
+        <a class="entrance-card" href="stories.html">
+          <div class="pic">🎈</div>
+          <h4>趣事广场</h4>
+          <p>食堂、课堂、运动会、宿舍……把每天的开心事分享出来，让快乐传染整个学校。</p>
+          <span class="btn">进入趣事广场</span>
+        </a>
+        <a class="entrance-card" href="gallery.html" style="border-top-color:#6f8fb0;">
+          <div class="pic" style="background:#e9f0f7;">📷</div>
+          <h4>校园图景</h4>
+          <p>四季校园、航拍全景、社团活动，用镜头定格青春的每一帧美好瞬间。</p>
+          <span class="btn" style="background:#6f8fb0;">进入校园图景</span>
+        </a>
+        <a class="entrance-card" href="nailong.html" style="border-top-color:var(--accent);">
+          <div class="pic" style="background:#fdf1df;">🐉</div>
+          <h4>奶龙专区</h4>
+          <p>校园吉祥物奶龙的表情包、壁纸、学生投稿都在这里，画一幅送它上墙吧！</p>
+          <span class="btn" style="background:var(--accent-dark);">进入奶龙专区</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 热门趣事 + 学校资讯双轨 -->
+  <section class="section" style="background:#fff;">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">HOT &amp; NEWS</span>
+        <h3>今日校园</h3>
+        <p>学生动态与学校资讯双轨并行</p>
+      </div>
+      <div class="dual-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h4>🔥 热门趣事</h4>
+            <a class="more" href="stories.html">去广场 &raquo;</a>
+          </div>
+          <ul class="mini-list" id="miniStories"></ul>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h4>🏫 学校资讯</h4>
+            <a class="more" href="news.html">更多 &raquo;</a>
+          </div>
+          <ul class="news-list">
+            <li><span><a href="news.html">高中部入选省高品质示范高中培育名单</a></span><span class="date">2023-11-20</span></li>
+            <li><span><a href="news.html">2020高考一本率51.8% 二本率97.4%</a></span><span class="date">2020-07</span></li>
+            <li><span><a href="news.html">"空中课堂"直播室上线共享资源</a></span><span class="date">2023-04-02</span></li>
+            <li><span><a href="campus.html">初中部创新班录取65人 全市前10占7</a></span><span class="date">2020-08-20</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 奶龙预热 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">MASCOT</span>
+        <h3>校园吉祥物 · 奶龙</h3>
+        <p>圆滚滚、元气满满的校园萌宝，陪你一起打怪升级</p>
+      </div>
+      <div style="text-align:center;">
+        <div class="mascot-card" style="display:inline-block;max-width:260px;margin:0 auto;">
+          <img src="images/mascot-a.jpg" alt="校园吉祥物奶龙" style="width:200px;height:200px;object-fit:cover;border-radius:18px;">
+          <h4>奶龙</h4>
+          <p>奶龙 · 校园吉祥物，元气满满，一学就会</p>
+        </div>
+        <div style="margin-top:24px;">
+          <a class="btn" href="nailong.html">去奶龙专区看看 🐉</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <site-footer></site-footer>
+
+  <div class="float-actions">
+    <button class="fab" id="fabCompose" title="发布趣事">✏️</button>
+  </div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/community.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

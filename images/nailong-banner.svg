@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b6f4f"/><stop offset="1" stop-color="#0f4430"/></linearGradient></defs>
+  <rect width="1200" height="520" fill="url(#b)"/>
+  <circle cx="1000" cy="90" r="180" fill="#ffffff" opacity="0.08"/>
+  <circle cx="150" cy="450" r="140" fill="#ffffff" opacity="0.06"/>
+  <text x="60" y="230" font-size="88" fill="#ffffff" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-weight="800">奶龙专区</text>
+  <text x="60" y="320" font-size="34" fill="#d8eadf" font-family="'PingFang SC','Microsoft YaHei',sans-serif">校园吉祥物 · 表情包 · 学生投稿 一起玩转奶龙!</text>
+  <text x="60" y="420" font-size="26" fill="#f0a030" font-family="'PingFang SC','Microsoft YaHei',sans-serif">NAILONG ZONE</text>
+</svg>

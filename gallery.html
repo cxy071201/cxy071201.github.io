@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园图景 - 江苏省奶龙中学 · 学生社区</title>
+  <meta name="description" content="江苏省奶龙中学校园图景：四季校园、航拍全景、体育馆、社团活动，用镜头记录青春的每一帧美好。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/community.css">
+</head>
+<body>
+
+  <site-header></site-header>
+
+  <!-- 板块横幅 -->
+  <section class="hero" style="height:300px;">
+    <div class="hero-bg" style="background-image:url('images/gallery-banner.svg');"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="hero-text" style="padding-top:70px;">
+        <div class="tagline">CAMPUS GALLERY</div>
+        <h2>校园图景</h2>
+        <p>用镜头记录青春的每一帧美好瞬间</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container" style="padding-top:30px;">
+    <!-- 筛选 -->
+    <div class="filter-bar" id="galleryFilter"></div>
+
+    <!-- 瀑布流图片墙 -->
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+
+  <site-footer></site-footer>
+
+  <script src="js/layout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/community.js"></script>
+</body>
+</html>

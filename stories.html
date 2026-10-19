@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>趣事广场 - 江苏省奶龙中学 · 学生社区</title>
+  <meta name="description" content="江苏省奶龙中学趣事广场：分享校园趣事、食堂日常、课堂趣闻、运动会高光，学生自运营的快乐聚集地。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/community.css">
+</head>
+<body>
+
+  <site-header></site-header>
+
+  <!-- 板块横幅 -->
+  <section class="hero" style="height:300px;">
+    <div class="hero-bg" style="background-image:url('images/stories-banner.svg');"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="hero-text" style="padding-top:70px;">
+        <div class="tagline">FUN STORIES</div>
+        <h2>趣事广场</h2>
+        <p>分享你的校园趣事，让快乐传染整个学校！</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container" style="padding-top:30px;">
+    <!-- 筛选 -->
+    <div class="filter-bar" id="storyFilter"></div>
+
+    <!-- 帖子流 -->
+    <div id="storiesFeed"></div>
+  </div>
+
+  <div style="padding:30px 0 60px;text-align:center;">
+    <button class="btn" id="btnCompose" style="padding:14px 46px;font-size:17px;">✏️ 发布我的趣事</button>
+  </div>
+
+  <site-footer></site-footer>
+
+  <div class="float-actions">
+    <button class="fab" id="fabCompose" title="发布趣事">✏️</button>
+  </div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/community.js"></script>
+</body>
+</html>

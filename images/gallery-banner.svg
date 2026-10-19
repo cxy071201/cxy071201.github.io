@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f8fb0"/><stop offset="1" stop-color="#3b5c80"/></linearGradient></defs>
+  <rect width="1200" height="520" fill="url(#b)"/>
+  <circle cx="1040" cy="90" r="180" fill="#ffffff" opacity="0.10"/>
+  <circle cx="140" cy="460" r="120" fill="#ffffff" opacity="0.07"/>
+  <text x="60" y="230" font-size="88" fill="#ffffff" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-weight="800">校园图景</text>
+  <text x="60" y="320" font-size="34" fill="#dce8f4" font-family="'PingFang SC','Microsoft YaHei',sans-serif">用镜头记录青春的每一帧美好瞬间</text>
+  <text x="60" y="420" font-size="26" fill="#f0a030" font-family="'PingFang SC','Microsoft YaHei',sans-serif">CAMPUS GALLERY</text>
+</svg>

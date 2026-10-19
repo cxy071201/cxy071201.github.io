@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>奶龙专区 - 江苏省奶龙中学 · 学生社区</title>
+  <meta name="description" content="江苏省奶龙中学奶龙专区：校园吉祥物奶龙介绍、表情包下载、壁纸、学生投稿，一起来玩转奶龙吧！">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/community.css">
+</head>
+<body>
+
+  <site-header></site-header>
+
+  <!-- 奶龙横幅 -->
+  <section class="nailong-hero" style="margin-top:24px;max-width:1200px;margin-left:auto;margin-right:auto;">
+    <img src="images/nailong-banner.svg" alt="奶龙专区横幅">
+  </section>
+
+  <div class="container">
+    <!-- 吉祥物介绍 -->
+    <div class="content">
+      <h3>🐉 认识奶龙</h3>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;">
+        <img src="images/mascot-a.jpg" alt="奶龙吉祥物" style="max-width:200px;width:200px;height:200px;object-fit:cover;border-radius:18px;margin:0 auto;">
+        <div>
+          <p>奶龙是江苏省奶龙中学的校园吉祥物，一个圆滚滚、元气满满的可爱萌宝，爱打招呼、活力满格。</p>
+          <p>它陪伴一届又一届学子成长，见证大家在食堂抢饭、操场上奔跑、图书馆内静静读书的每一天。希望每一个奶龙人，都能像它一样，元气满满、一学就会、一冲就赢！</p>
+          <div class="tag-row">
+            <span>元气萌宝</span><span>圆滚滚</span><span>校园吉祥物</span><span>陪你打怪升级</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表情包 -->
+  <section class="section" style="background:#fff;">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">STICKERS</span>
+        <h3>奶龙表情包</h3>
+        <p>点击"下载"即可保存，聊天斗图必备</p>
+      </div>
+      <div class="sticker-grid" id="nailongGrid"></div>
+    </div>
+  </section>
+
+  <!-- 壁纸 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">WALLPAPER</span>
+        <h3>奶龙壁纸</h3>
+        <p>手机壁纸，把奶龙带在身边</p>
+      </div>
+      <div class="sticker-grid">
+        <div class="sticker">
+          <img src="images/wallpaper-nailong.svg" alt="奶龙壁纸">
+          <div class="s-name">奶龙与你同行 · 壁纸</div>
+          <span class="dl" id="dlWallpaper">⬇ 下载壁纸</span>
+        </div>
+        <div class="sticker">
+          <img src="images/scene-spring.svg" alt="校园壁纸">
+          <div class="s-name">春 · 樱花大道 · 壁纸</div>
+          <span class="dl" data-dl="images/scene-spring.svg">⬇ 下载壁纸</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 学生投稿 -->
+  <section class="section" style="background:#fff;">
+    <div class="container">
+      <div class="section-title">
+        <span class="eyebrow">UPLOAD</span>
+        <h3>学生投稿</h3>
+        <p>画一幅奶龙、拍一张合影，投稿让作品上墙（图片保存在本地浏览器）</p>
+      </div>
+      <div class="content" style="margin-top:0;">
+        <h4>上传你的奶龙作品</h4>
+        <div class="compose">
+          <input id="nlTitle" maxlength="20" placeholder="给作品起个名字，例如：奶龙上学记">
+          <div class="img-row" style="flex-wrap:wrap;">
+            <input type="file" id="nlUpload" accept="image/*" style="flex:1;min-width:220px;padding:10px;">
+            <button class="btn" id="nlUploadBtn" style="padding:10px 24px;">投稿上墙</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sticker-grid" id="nailongGrid2" style="margin-top:18px;"></div>
+    </div>
+  </section>
+
+  <site-footer></site-footer>
+
+  <script src="js/layout.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/community.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 绑定壁纸下载
+      var w = document.getElementById('dlWallpaper');
+      if (w) w.addEventListener('click', function () {
+        var a = document.createElement('a');
+        a.href = 'images/wallpaper-nailong.svg';
+        a.download = 'nailong-wallpaper.svg';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    });
+    // 把投稿渲染也放进第二个容器(上传后统一刷新)
+    document.addEventListener('nl-layout-ready', function () {
+      if (window.__nlRenderAll) window.__nlRenderAll();
+      setTimeout(function () { if (window.__nlRenderAll) window.__nlRenderAll(); }, 100);
+    });
+  </script>
+</body>
+</html>
