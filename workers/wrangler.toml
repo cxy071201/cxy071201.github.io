@@ -1,0 +1,21 @@
+name = "nailong-school"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 静态站点资源目录（Cloudflare Workers 静态资产）
+[assets]
+directory = "../"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# D1 数据库绑定（在 Cloudflare 后台创建后填入 database_id）
+[[d1_databases]]
+binding = "DB"
+database_name = "nailong-db"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+
+# R2 对象存储绑定（用于存放学生上传的图片/作品）
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "nailong-uploads"
