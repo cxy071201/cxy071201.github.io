@@ -57,6 +57,9 @@
       comments.forEach(function (c) { (cmap[c.post_id] = cmap[c.post_id] || []).push(c); });
       posts.forEach(function (p) {
         p.time = (p.created || 0) * 1000;
+        p.author = p.author_name;      // 云端字段 -> 前端字段
+        p.avatar = p.author_avatar;
+        p.anon = !!p.anon;
         p.likedBy = {};
         p.comments = (cmap[p.id] || []).map(function (c) {
           return { name: c.author_name, time: (c.created || 0) * 1000, text: c.text };
