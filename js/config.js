@@ -1,12 +1,12 @@
 /* ===== 江苏省奶龙中学 · 云端开关 =====
-   当 apiBase 为空字符串时，网站用浏览器本地(localStorage)模式 —— 当前默认，开箱即用。
-   当后端部署好、把下面 apiBase 改成云端地址后，网站会自动改用云端 API，
-   实现所有访客的帖子/评论/点赞/投稿全网共享。
-
-   示例：apiBase: "https://nailong-school.你的子域.workers.dev"
+   使用 Supabase 免费云数据库实现"发帖/评论/点赞/投稿全网共享"。
+   supabaseUrl 和 supabaseKey 来自 Supabase 后台：
+     Project Settings -> API Keys -> Project URL 和 Publishable key
+   若你暂时不想用云端，把 supabaseUrl 置空字符串即可切回本地(localStorage)模式。
 */
 window.NL_CONFIG = {
-  apiBase: "",
+  supabaseUrl: "https://obmwzmiyimwknlalvviv.supabase.co",
+  supabaseKey: "sb_publishable_O2VLKDkbvmGCh0uQST4_Tw_7xZRy_xF",
   // 记住游客身份用的本地 key（点赞去重等）
   idKey: "nl_uid",
 };

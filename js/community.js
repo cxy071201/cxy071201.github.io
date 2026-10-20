@@ -7,8 +7,9 @@
 
   var KEY = 'nl_site';
   var AVATARS = ['🐉', '🐱', '🐶', '🦊', '🐰', '🐼', '🦁', '🐨', '🦄', '🐸', '🐵', '🦉'];
-  var _cloud = (window.NL_CONFIG && window.NL_CONFIG.apiBase) || '';
-  var IS_CLOUD = !!_cloud;
+  var _supaUrl = (window.NL_CONFIG && window.NL_CONFIG.supabaseUrl) || '';
+  var _supaKey = (window.NL_CONFIG && window.NL_CONFIG.supabaseKey) || '';
+  var IS_CLOUD = !!_supaUrl;
   var cloudData = null;   // 云端模式下缓存的全局数据
   var UID_KEY = (window.NL_CONFIG && window.NL_CONFIG.idKey) || 'nl_uid';
   var _uid = localStorage.getItem(UID_KEY) || 'u' + (Math.random().toString(36).slice(2, 10));
@@ -18,8 +19,15 @@
     localStorage.setItem(UID_KEY, _uid);
     return _uid;
   }
-  function cloudFetch(path, opts) {
-    return fetch(_cloud + path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
+  /* Supabase(PostgREST) 请求辅助 */
+  function supa(path, opts) {
+    var headers = {
+      'apikey': _supaKey,
+      'Authorization': 'Bearer ' + _supaKey,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    };
+    return fetch(_supaUrl + '/rest/v1/' + path, Object.assign({ headers: headers }, opts || {}));
   }
 
   /* ---------------- 数据读写 ---------------- */
@@ -43,33 +51,52 @@
     if (!IS_CLOUD) return;
     var d = { user: localRead().user || null, stories: [], gallery: [], nailong: [], uploads: [], reports: [] };
     try {
-      var p1 = cloudFetch('/api/posts').then(function (r) { return r.json(); });
-      var p2 = cloudFetch('/api/gallery').then(function (r) { return r.json(); });
-      var p3 = cloudFetch('/api/nailong').then(function (r) { return r.json(); });
-      var p4 = cloudFetch('/api/comments').then(function (r) { return r.json(); });
-      var res = await Promise.all([p1, p2, p3, p4]);
-      var posts = (res[0] && res[0].posts) || [];
-      var gallery = (res[1] && res[1].gallery) || [];
-      var nailong = (res[2] && res[2].nailong) || [];
-      var comments = (res[3] && res[3].comments) || [];
+      var res = await Promise.all([
+        supa('posts?select=*&order=created.desc').then(function (r) { return r.json(); })
+          .then(function (j) { return Array.isArray(j) ? j : []; }),
+        supa('gallery?select=*&order=created.desc').then(function (r) { return r.json(); })
+          .then(function (j) { return Array.isArray(j) ? j : []; }),
+        supa('comments?select=*&order=created.asc').then(function (r) { return r.json(); })
+          .then(function (j) { return Array.isArray(j) ? j : []; }),
+        supa('likes?select=post_id,user_id').then(function (r) { return r.json(); })
+          .then(function (j) { return Array.isArray(j) ? j : []; })
+      ]);
+      var posts = res[0];
+      var gallery = res[1];
+      var comments = res[2];
+      var likes = res[3];
+      // 点赞去重：当前访客 uidset
+      var myUid = uidToken();
+      var likedPosts = {};
+      likes.forEach(function (l) { if (l.user_id === myUid) likedPosts[l.post_id] = true; });
       // 把评论合并进对应帖子
       var cmap = {};
       comments.forEach(function (c) { (cmap[c.post_id] = cmap[c.post_id] || []).push(c); });
       posts.forEach(function (p) {
-        p.time = (p.created || 0) * 1000;
+        p.time = p.created ? new Date(p.created).getTime() : Date.now();
         p.author = p.author_name;      // 云端字段 -> 前端字段
         p.avatar = p.author_avatar;
         p.anon = !!p.anon;
-        p.likedBy = {};
+        p.likedBy = likedPosts[p.id] ? { me: true } : {};
         p.comments = (cmap[p.id] || []).map(function (c) {
-          return { name: c.author_name, time: (c.created || 0) * 1000, text: c.text };
+          return { name: c.author_name, time: c.created ? new Date(c.created).getTime() : Date.now(), text: c.text };
         });
       });
-      gallery.forEach(function (g) { g.likedBy = {}; });
-      nailong.forEach(function (n) { n.likedBy = {}; });
+      gallery.forEach(function (g) {
+        g.id = g.id;
+        g.likedBy = {};
+        g.created = g.created || null;
+      });
       d.stories = posts;
       d.gallery = gallery;
-      d.nailong = nailong;
+      // nailong 直接来自 gallery(图片投稿区复用) 之外，独立读 nailong 表
+      var nailRes = await supa('nailong?select=*&order=created.desc').then(function (r) { return r.json(); })
+        .then(function (j) { return Array.isArray(j) ? j : []; });
+      nailRes.forEach(function (n) { n.likedBy = {}; });
+      d.nailong = nailRes;
+      // uploads 展示用：与 nailong 一致（学生投稿）——这里并入 nailong，前端展示投稿栏
+      var ups = nailRes.map(function (n) { return n; });
+      d.uploads = ups;
     } catch (e) { /* 云端暂不可用则显示空 */ }
     cloudData = d;
     renderAll();
@@ -257,11 +284,32 @@
     var u = getUser();
     if (!u || !u.name) { toast('登录后才能点赞哦～'); openLoginModal(); return; }
     if (kind === 'stories' && IS_CLOUD) {
-      // 云端：调用 API 切换点赞并回显最新数量
-      cloudFetch('/api/posts/' + encodeURIComponent(id) + '/like', { method: 'POST', body: JSON.stringify({ user_id: uidToken() }) })
+      // 云端：用 likes 表切换点赞，并更新帖子 likes 计数
+      var ukey = uidToken();
+      var pid = id;
+      supa('likes?select=post_id&post_id=eq.' + encodeURIComponent(pid) + '&user_id=eq.' + encodeURIComponent(ukey))
         .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res && typeof res.likes === 'number' && el) { el.textContent = '👍 ' + res.likes; }
+        .then(function (rows) {
+          var exists = Array.isArray(rows) && rows.length > 0;
+          var delta = exists ? -1 : 1;
+          var req = exists
+            ? supa('likes?post_id=eq.' + encodeURIComponent(pid) + '&user_id=eq.' + encodeURIComponent(ukey), { method: 'DELETE' })
+            : supa('likes', { method: 'POST', body: JSON.stringify({ post_id: pid, user_id: ukey }) });
+          return req.then(function () { return delta; });
+        })
+        .then(function (delta) {
+          // 重算 likes 数量（简单方式：先读当前值再 +/-）
+          return supa('posts?select=likes&id=eq.' + encodeURIComponent(pid))
+            .then(function (r) { return r.json(); })
+            .then(function (rows) {
+              var cur = (Array.isArray(rows) && rows[0] && typeof rows[0].likes === 'number') ? rows[0].likes : 0;
+              var next = Math.max(0, cur + delta);
+              return supa('posts?id=eq.' + encodeURIComponent(pid), { method: 'PATCH', body: JSON.stringify({ likes: next }) })
+                .then(function () { return next; });
+            });
+        })
+        .then(function (next) {
+          if (el) { el.textContent = '👍 ' + next; }
           loadCloud(); // 重新拉取以更新 liked 状态
         }).catch(function () { loadCloud(); });
       return;
@@ -371,7 +419,7 @@
     var text = input.value.trim();
     if (!text) { input.focus(); return; }
     if (IS_CLOUD) {
-      cloudFetch('/api/posts/' + encodeURIComponent(id) + '/comments', { method: 'POST', body: JSON.stringify({ name: u.name, text: text }) })
+      supa('comments', { method: 'POST', body: JSON.stringify({ post_id: id, author_name: u.name, text: text }) })
         .then(function () { input.value = ''; return loadCloud(); })
         .then(function () {
           var c = document.getElementById('cmt-' + id);
@@ -465,8 +513,7 @@
       if (!title || !body) { toast('标题和内容都要填哦～'); return; }
       var u = getUser();
       if (IS_CLOUD) {
-        cloudFetch('/api/posts', { method: 'POST', body: JSON.stringify({ title: title, body: body, tag: tag, anon: anon, name: u.name, avatar: u.avatar || '🐉' }) })
-          .then(function (r) { return r.json(); })
+        supa('posts', { method: 'POST', body: JSON.stringify({ title: title, body: body, tag: tag, anon: anon ? 1 : 0, author_name: u.name, author_avatar: u.avatar || '🐉' }) })
           .then(function () { overlay.remove(); toast('发布成功！🎉 感谢你的分享'); return loadCloud(); })
           .catch(function () { toast('发布失败，请检查网络'); });
         return;
@@ -526,6 +573,16 @@
       var arr = d.gallery || [];
       var item = arr.filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
       if (!item) return;
+      if (IS_CLOUD) {
+        var gid = t.getAttribute('data-id');
+        var cur = typeof item.likes === 'number' ? item.likes : 0;
+        var next = (item.likedBy && Object.keys(item.likedBy).length) ? Math.max(0, cur - 1) : cur + 1;
+        t.textContent = '❤ ' + next;
+        if (item.likedBy && Object.keys(item.likedBy).length) { delete item.likedBy.me; item.likedBy = {}; t.classList.remove('liked'); }
+        else { item.likedBy = { me: true }; t.classList.add('liked'); }
+        supa('gallery?id=eq.' + encodeURIComponent(gid), { method: 'PATCH', body: JSON.stringify({ likes: next }) }).catch(function () {});
+        return;
+      }
       if (!item.likedBy) item.likedBy = {};
       var key = u.name + '|' + (u.avatar || '');
       if (item.likedBy[key]) { delete item.likedBy[key]; item.likes = (item.likes || 1) - 1; t.classList.remove('liked'); }
@@ -594,6 +651,17 @@
         var d = read();
         var item = (d.nailong || []).filter(function (x) { return x.id === like.getAttribute('data-nlike'); })[0];
         if (!item) return;
+        if (IS_CLOUD) {
+          var nid = like.getAttribute('data-nlike');
+          var cur = typeof item.likes === 'number' ? item.likes : 0;
+          var already = item.likedBy && Object.keys(item.likedBy).length;
+          var next = already ? Math.max(0, cur - 1) : cur + 1;
+          if (already) { item.likedBy = {}; like.style.color = 'var(--text-light)'; }
+          else { item.likedBy = { me: true }; like.style.color = '#e07a7a'; }
+          like.textContent = '❤ ' + next;
+          supa('nailong?id=eq.' + encodeURIComponent(nid), { method: 'PATCH', body: JSON.stringify({ likes: next }) }).catch(function () {});
+          return;
+        }
         if (!item.likedBy) item.likedBy = {};
         var key = u.name + '|' + (u.avatar || '');
         if (item.likedBy[key]) { delete item.likedBy[key]; item.likes = (item.likes || 1) - 1; like.style.color = 'var(--text-light)'; }
@@ -650,20 +718,17 @@
       var file = input.files[0];
       if (!/^image\//.test(file.type)) { toast('请选择图片文件'); return; }
       if (IS_CLOUD) {
-        var fd = new FormData();
-        fd.append('file', file, file.name);
-        fd.append('title', t);
-        fd.append('author', (getUser() && getUser().name) || '奶龙粉丝');
-        cloudFetch('/api/upload', { method: 'POST', body: fd, headers: {} })
-          .then(function (r) { return r.json(); })
-          .then(function (res) {
-            if (res && res.ok) {
+        // 云端：图片转 base64 存入 gallery 表（作者投稿），所有人可见
+        var reader = new FileReader();
+        reader.onload = function () {
+          supa('gallery', { method: 'POST', body: JSON.stringify({ title: t, cat: '学生投稿', author: (getUser() && getUser().name) || '奶龙粉丝', img: reader.result, likes: 0 }) })
+            .then(function () {
               input.value = ''; title.value = '';
               toast('投稿成功！你的奶龙作品上墙啦 🎉');
               return loadCloud();
-            }
-            toast('上传失败，请稍后再试');
-          }).catch(function () { toast('上传失败，请检查网络'); });
+            }).catch(function () { toast('上传失败，请检查网络'); });
+        };
+        reader.readAsDataURL(file);
         return;
       }
       var reader = new FileReader();
