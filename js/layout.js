@@ -13,6 +13,7 @@
     { label: '奶龙专区', href: 'nailong.html' },
     { label: '学校简介', href: 'about.html' },
     { label: '校园新闻', href: 'news.html' },
+    { label: '教材中心', href: 'textbook.html' },
     { label: '联系我们', href: 'contact.html' }
   ];
 
@@ -84,6 +85,7 @@
           '<div><h5>学校信息</h5><ul>' +
             '<li><a href="about.html">学校简介</a></li>' +
             '<li><a href="news.html">校园新闻</a></li>' +
+            '<li><a href="textbook.html">教材中心</a></li>' +
             '<li><a href="campus.html">校区概况</a></li>' +
             '<li><a href="features.html">特色与口碑</a></li></ul></div>' +
           '<div><h5>联系方式</h5><ul>' +
