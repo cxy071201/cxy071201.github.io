@@ -495,6 +495,44 @@ site-footer {
   border-color: #e0a0a0;
 }
 
+/* 评论/图库/奶龙 举报按钮 */
+.cmt-report,
+.gal-report,
+.sticker-report {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-lighter);
+  opacity: .65;
+  transition: opacity .2s, color .2s;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.cmt-report:hover,
+.gal-report:hover,
+.sticker-report:hover {
+  opacity: 1;
+  color: #c65a5a;
+}
+.cmt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gallery-item .gal-report,
+.sticker-grid .sticker .sticker-report {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  background: rgba(255,255,255,.85);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.sticker-grid .sticker { position: relative; }
+
+
 /* 评论区 */
 .comments {
   margin-top: 12px;

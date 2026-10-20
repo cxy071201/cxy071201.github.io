@@ -79,7 +79,7 @@
         p.anon = !!p.anon;
         p.likedBy = likedPosts[p.id] ? { me: true } : {};
         p.comments = (cmap[p.id] || []).map(function (c) {
-          return { name: c.author_name, time: c.created ? new Date(c.created).getTime() : Date.now(), text: c.text };
+          return { id: c.id, name: c.author_name, time: c.created ? new Date(c.created).getTime() : Date.now(), text: c.text };
         });
       });
       gallery.forEach(function (g) {
@@ -357,7 +357,10 @@
       var who = p.anon ? '<span class="who" style="background:#eef1f0;color:#9aa5a0;">匿</span>' : '<span class="who">' + escapeHtml(p.avatar || p.author.charAt(0)) + '</span>';
       var name = p.anon ? '匿名同学' : escapeHtml(p.author);
       var cmts = (p.comments || []).map(function (c) {
-        return '<div class="cmt"><span class="cname">' + escapeHtml(c.name) + '</span><span class="ctime">' + timeAgo(c.time) + '</span><div>' + escapeHtml(c.text) + '</div></div>';
+        return '<div class="cmt">' +
+          '<div class="cmt-head"><span class="cname">' + escapeHtml(c.name) + '</span>' +
+          '<button class="cmt-report" data-kind="comment" data-id="' + escapeHtml(c.id || '') + '" data-preview="' + escapeHtml(c.text.replace(/\s+/g, ' ').slice(0, 40)) + '" title="举报该评论">🚩</button></div>' +
+          '<span class="ctime">' + timeAgo(c.time) + '</span><div>' + escapeHtml(c.text) + '</div></div>';
       }).join('');
       var cmtCount = (p.comments || []).length;
       var liked = p.likedBy && Object.keys(p.likedBy).length;
@@ -401,23 +404,25 @@
         if (navigator.clipboard) {
           navigator.clipboard.writeText('看看我发的校园趣事："' + title + '" — 江苏省奶龙中学学生社区').then(function () { toast('已复制分享文案 📋'); });
         } else { toast('复制失败，请手动分享'); }
-      } else if ((t = e.target.closest('.report-btn'))) {
-        var rk = t.getAttribute('data-kind') || 'post';
-        var rid = t.getAttribute('data-id') || '';
-        var rprev = t.getAttribute('data-preview') || '';
-        if (IS_CLOUD) {
-          supa('reports', { method: 'POST', body: JSON.stringify({ kind: rk, target_id: rid, preview: rprev }) })
-            .then(function () { toast('已收到举报，管理员将尽快处理 🚩 感谢你维护社区环境'); })
-            .catch(function () { toast('举报提交失败，请稍后再试'); });
-          return;
-        }
-        var d = read();
-        if (!d.reports) d.reports = [];
-        d.reports.push({ kind: rk, title: rprev, time: Date.now() });
-        write(d);
-        toast('已收到举报，管理员将尽快处理（可匿名）🚩 感谢你维护社区环境');
+      } else if ((t = e.target.closest('.report-btn, .cmt-report'))) {
+        reportContent(t.getAttribute('data-kind') || 'post', t.getAttribute('data-id') || '', t.getAttribute('data-preview') || '');
       }
     });
+  }
+
+  /* 统一的举报上报 */
+  function reportContent(kind, id, preview) {
+    if (IS_CLOUD) {
+      supa('reports', { method: 'POST', body: JSON.stringify({ kind: kind, target_id: id, preview: preview }) })
+        .then(function () { toast('已收到举报，管理员将尽快处理 🚩 感谢你维护社区环境'); })
+        .catch(function () { toast('举报提交失败，请稍后再试'); });
+      return;
+    }
+    var d = read();
+    if (!d.reports) d.reports = [];
+    d.reports.push({ kind: kind, title: preview, time: Date.now() });
+    write(d);
+    toast('已收到举报，管理员将尽快处理（可匿名）🚩 感谢你维护社区环境');
   }
 
   function addComment(id, container) {
@@ -558,6 +563,7 @@
       var liked = g.likedBy && Object.keys(g.likedBy).length;
       return '<figure class="gallery-item">' +
         '<span class="cat-badge">' + escapeHtml(g.cat) + '</span>' +
+        '<button class="gal-report" data-kind="gallery" data-id="' + escapeHtml(g.id) + '" data-preview="' + escapeHtml(g.title) + '" title="举报该图片">🚩</button>' +
         '<img src="' + g.img + '" alt="' + escapeHtml(g.title) + '">' +
         '<figcaption class="g-info">' +
           '<div class="g-title">' + escapeHtml(g.title) + '</div>' +
@@ -573,6 +579,11 @@
     if (container.__bound) return;
     container.__bound = true;
     container.addEventListener('click', function (e) {
+      var rep = e.target.closest('.gal-report');
+      if (rep) {
+        reportContent(rep.getAttribute('data-kind') || 'gallery', rep.getAttribute('data-id') || '', rep.getAttribute('data-preview') || '');
+        return;
+      }
       var t = e.target.closest('.gallike');
       if (!t) return;
       var u = getUser();
@@ -628,6 +639,7 @@
     container.innerHTML = arr.map(function (n) {
       var liked = n.likedBy && Object.keys(n.likedBy).length;
       return '<div class="sticker">' +
+        '<button class="sticker-report" data-kind="nailong" data-id="' + escapeHtml(n.id) + '" data-preview="' + escapeHtml(n.title) + '" title="举报">🚩</button>' +
         '<img src="' + n.img + '" alt="' + escapeHtml(n.title) + '">' +
         '<div class="s-name">' + escapeHtml(n.title) + '</div>' +
         '<span class="dl" data-dl="' + n.img + '">⬇ 下载</span>' +
@@ -641,6 +653,11 @@
     if (container.__bound) return;
     container.__bound = true;
     container.addEventListener('click', function (e) {
+      var rep = e.target.closest('.sticker-report');
+      if (rep) {
+        reportContent(rep.getAttribute('data-kind') || 'nailong', rep.getAttribute('data-id') || '', rep.getAttribute('data-preview') || '');
+        return;
+      }
       var dl = e.target.closest('[data-dl]');
       if (dl) {
         var a = document.createElement('a');
