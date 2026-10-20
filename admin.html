@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理员后台 · 奶龙社区</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { background:#f4f7fb; }
+  .admin-wrap { max-width:900px; margin:0 auto; padding:30px 16px; }
+  .admin-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .admin-head h1 { font-size:22px; }
+  .admin-card { background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:16px; }
+  .admin-card .row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .admin-card .meta { font-size:13px; color:#8a94a0; margin-top:6px; }
+  .admin-card .preview { margin-top:8px; padding:10px 12px; background:#f7f9fc; border-radius:8px; font-size:14px; color:#333; }
+  .btn-danger { background:#e05252; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; }
+  .btn-danger:hover { background:#c93f3f; }
+  .btn-ghost { background:#fff; color:#4a7fd4; border:1px solid #cfdbea; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; }
+  .empty { text-align:center; color:#9aa5b0; padding:40px 0; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+  .pill { padding:6px 14px; border-radius:20px; font-size:13px; cursor:pointer; border:1px solid #d5e0ee; background:#fff; }
+  .pill.active { background:#4a7fd4; color:#fff; border-color:#4a7fd4; }
+  details { margin-top:8px; }
+  details summary { cursor:pointer; color:#4a7fd4; font-size:13px; }
+  .detail-box { margin-top:8px; padding:10px 12px; background:#f7f9fc; border-radius:8px; font-size:13px; color:#444; white-space:pre-wrap; word-break:break-word; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:10px; background:#eef2f8; color:#5a6b81; }
+</style>
+</head>
+<body>
+<div class="admin-wrap">
+  <div class="admin-head">
+    <h1>🛡 管理员后台</h1>
+    <a href="index.html" style="font-size:13px;color:#4a7fd4;text-decoration:none;">← 返回网站</a>
+  </div>
+
+  <div class="bar">
+    <button class="pill active" data-f="all">全部</button>
+    <button class="pill" data-f="post">帖子</button>
+    <button class="pill" data-f="comment">评论</button>
+    <button class="pill" data-f="gallery">图库</button>
+    <button class="pill" data-f="nailong">奶龙</button>
+    <button class="btn-ghost" id="refreshBtn" style="margin-left:auto;">🔄 刷新</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SUPA = window.NL_CONFIG.supabaseUrl;
+  var KEY = window.NL_CONFIG.supabaseKey;
+  function sup(path, opts) {
+    var headers = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+    return fetch(SUPA + '/rest/v1/' + path, Object.assign({ headers: headers }, opts || {}));
+  }
+  var kindName = { post: '帖子', comment: '评论', gallery: '图库', nailong: '奶龙' };
+  var kindTable = { post: 'posts', comment: 'comments', gallery: 'gallery', nailong: 'nailong' };
+  var filter = 'all';
+  var list = document.getElementById('list');
+
+  function timeAgo(t) {
+    var s = (Date.now() - new Date(t).getTime()) / 1000;
+    if (s < 60) return '刚刚';
+    if (s < 3600) return Math.floor(s / 60) + ' 分钟前';
+    if (s < 86400) return Math.floor(s / 3600) + ' 小时前';
+    return new Date(t).toLocaleString('zh-CN');
+  }
+
+  function loadReports() {
+    list.innerHTML = '<div class="empty">加载中…</div>';
+    sup('reports?select=*&order=created.desc')
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) { list.innerHTML = '<div class="empty">读取失败</div>'; return; }
+        if (!rows.length) { list.innerHTML = '<div class="empty">🎉 暂无举报</div>'; return; }
+        var arr = rows;
+        if (filter !== 'all') arr = arr.filter(function (x) { return x.kind === filter; });
+        if (!arr.length) { list.innerHTML = '<div class="empty">该分类暂无举报</div>'; return; }
+        list.innerHTML = arr.map(reportCard).join('');
+        bindActions();
+      })
+      .catch(function () { list.innerHTML = '<div class="empty">加载失败，请检查网络</div>'; });
+  }
+
+  function reportCard(r) {
+    var id = r.id;
+    var safeId = String(id);
+    return '<div class="admin-card" data-rid="' + safeId + '">' +
+      '<div class="row">' +
+        '<div><span class="tag">' + (kindName[r.kind] || r.kind) + '</span> ' +
+          '<strong>' + escapeHtml((r.preview || '(无预览)')) + '</strong></div>' +
+        '<div style="display:flex;gap:8px;flex-shrink:0;">' +
+          '<button class="btn-ghost" data-view="' + safeId + '">查看</button>' +
+          '<button class="btn-danger" data-del="' + safeId + '">删除</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="meta">举报ID：' + (r.target_id || '-') + ' · 时间：' + timeAgo(r.created) + '</div>' +
+      '<div class="detail-box" id="detail-' + safeId + '" style="display:none;">加载中…</div>' +
+    '</div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+  }
+
+  function bindActions() {
+    var cards = list.querySelectorAll('.admin-card');
+    cards.forEach(function (card) {
+      var rid = card.getAttribute('data-rid');
+      var view = card.querySelector('[data-view]');
+      var del = card.querySelector('[data-del]');
+      if (view) view.addEventListener('click', function () { toggleDetail(rid, card); });
+      if (del) del.addEventListener('click', function () { doDelete(rid, card); });
+    });
+  }
+
+  function findReport(rid, cb) {
+    sup('reports?select=*&id=eq.' + encodeURIComponent(rid))
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        var r = (Array.isArray(rows) && rows[0]) ? rows[0] : null;
+        if (r) { cb(r); } else { alert('未找到该举报记录'); }
+      })
+      .catch(function () { alert('查找失败'); });
+  }
+
+  function toggleDetail(rid, card) {
+    var box = document.getElementById('detail-' + rid);
+    if (!box) return;
+    if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    findReport(rid, function (r) {
+      var table = kindTable[r.kind];
+      var id = r.target_id;
+      if (!table || !id) { box.textContent = '（找不到对应内容引用）'; return; }
+      sup(table + '?select=*&id=eq.' + encodeURIComponent(id))
+        .then(function (resp) { return resp.json(); })
+        .then(function (rows) {
+          var item = (Array.isArray(rows) && rows[0]) ? rows[0] : null;
+          if (!item) { box.textContent = '（原内容已被删除或不存在）'; return; }
+          var txt = '';
+          if (r.kind === 'post') txt = '标题：' + (item.title || '') + '\n正文：' + (item.body || '');
+          else if (r.kind === 'comment') txt = '评论：' + (item.text || '') + '（by ' + (item.author_name || '') + '）';
+          else if (r.kind === 'gallery') txt = '图片标题：' + (item.title || '') + '\n作者：' + (item.author || '');
+          else if (r.kind === 'nailong') txt = '标题：' + (item.title || '') + '\n作者：' + (item.author || '');
+          box.textContent = txt || '（内容为空）';
+        })
+        .catch(function () { box.textContent = '读取原文失败'; });
+    });
+  }
+
+  function doDelete(rid, card) {
+    if (!confirm('确定要删除这条被举报内容吗？删除后全网都会消失。')) return;
+    findReport(rid, function (r) {
+      var table = kindTable[r.kind];
+      var id = r.target_id;
+      var steps = [];
+      if (table && id) {
+        steps.push(sup(table + '?id=eq.' + encodeURIComponent(id), { method: 'DELETE' }));
+      }
+      // 若删除的是帖子，顺带删其评论
+      if (r.kind === 'post' && id) {
+        steps.push(sup('comments?post_id=eq.' + encodeURIComponent(id), { method: 'DELETE' }));
+      }
+      // 删除举报记录
+      steps.push(sup('reports?id=eq.' + encodeURIComponent(rid), { method: 'DELETE' }));
+      Promise.all(steps)
+        .then(function () { alert('已删除 ✅'); loadReports(); })
+        .catch(function () { alert('删除出错，请重试'); });
+    });
+  }
+
+  // 过滤器
+  document.querySelectorAll('.pill').forEach(function (p) {
+    p.addEventListener('click', function () {
+      document.querySelectorAll('.pill').forEach(function (x) { x.classList.remove('active'); });
+      p.classList.add('active');
+      filter = p.getAttribute('data-f');
+      loadReports();
+    });
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', loadReports);
+
+  loadReports();
+})();
+</script>
+</body>
+</html>

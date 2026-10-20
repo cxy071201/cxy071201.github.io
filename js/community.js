@@ -372,7 +372,7 @@
           '<button class="like-btn' + (liked ? ' liked' : '') + '" data-kind="stories" data-id="' + p.id + '">👍 ' + (p.likes || 0) + '</button>' +
           '<button class="cmt-btn" data-id="' + p.id + '">💬 ' + cmtCount + '</button>' +
           '<button class="share-btn" data-title="' + escapeHtml(p.title) + '">🔗 分享</button>' +
-          '<button class="report-btn" data-title="' + escapeHtml(p.title) + '" title="举报该内容">🚩 举报</button>' +
+          '<button class="report-btn" data-kind="post" data-id="' + escapeHtml(p.id) + '" data-preview="' + escapeHtml(p.title) + '" title="举报该内容">🚩 举报</button>' +
         '</div>' +
         '<div class="comments" id="cmt-' + p.id + '">' + cmts +
           '<div class="cmt-input"><input placeholder="说点什么…" data-cmt="' + p.id + '"><button data-addcmt="' + p.id + '">发送</button></div>' +
@@ -402,10 +402,18 @@
           navigator.clipboard.writeText('看看我发的校园趣事："' + title + '" — 江苏省奶龙中学学生社区').then(function () { toast('已复制分享文案 📋'); });
         } else { toast('复制失败，请手动分享'); }
       } else if ((t = e.target.closest('.report-btn'))) {
-        var rtitle = t.getAttribute('data-title') || '';
+        var rk = t.getAttribute('data-kind') || 'post';
+        var rid = t.getAttribute('data-id') || '';
+        var rprev = t.getAttribute('data-preview') || '';
+        if (IS_CLOUD) {
+          supa('reports', { method: 'POST', body: JSON.stringify({ kind: rk, target_id: rid, preview: rprev }) })
+            .then(function () { toast('已收到举报，管理员将尽快处理 🚩 感谢你维护社区环境'); })
+            .catch(function () { toast('举报提交失败，请稍后再试'); });
+          return;
+        }
         var d = read();
         if (!d.reports) d.reports = [];
-        d.reports.push({ title: rtitle, time: Date.now() });
+        d.reports.push({ kind: rk, title: rprev, time: Date.now() });
         write(d);
         toast('已收到举报，管理员将尽快处理（可匿名）🚩 感谢你维护社区环境');
       }
